@@ -23,7 +23,7 @@ func main() {
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  Version: %s:\n", versionString)
+		fmt.Fprintf(os.Stderr, "Version: %s\n", versionString)
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -38,6 +38,7 @@ func main() {
 		os.Exit(0)
 	} else if *version {
 		fmt.Fprintf(os.Stdout, "  Version: %s:\n", versionString)
+		os.Exit(0)
 	} else {
 		flag.Usage()
 	}

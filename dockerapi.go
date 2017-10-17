@@ -9,7 +9,8 @@ import (
 	"github.com/docker/docker/client"
 )
 
-//outputRunningContainers
+// outputRunningContainers outputs info to cli using defined methods
+// currently only tabwriter is implemented
 func outputRunningContainers(ctx context.Context, cli *client.Client) {
 	ctxd, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -21,7 +22,7 @@ func outputRunningContainers(ctx context.Context, cli *client.Client) {
 	tableOutput(containers)
 }
 
-// searchRunningContainers
+// searchRunningContainers returns slice of the current running containers
 func searchRunningContainers(ctx context.Context, cli *client.Client, term string) ([]types.Container, error) {
 	nameFilters := filters.NewArgs()
 	nameFilters.Add("name", term)
