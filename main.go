@@ -18,7 +18,8 @@ var (
 func main() {
 	versionString := fmt.Sprintf("%s (%s) %s", version, gitHash, date)
 	searchTerm := flag.String("name", "", "the name of the container you want to kill")
-	list := flag.Bool("list", false, "Do you want to just list running containers?")
+	instanceList := flag.Bool("list-containers", false, "Do you want to list running containers?")
+	serviceList := flag.Bool("list-services", false, "Do you want to list running services?")
 	version := flag.Bool("version", false, "Version Info")
 
 	flag.Usage = func() {
@@ -33,20 +34,24 @@ func main() {
 	checkError(err)
 
 	// decision logic based on user flags
-	if *list {
+	if *instanceList {
 		outputRunningContainers(context.Background(), cli)
+		os.Exit(0)
+	} else if *serviceList {
+		outputServices(context.Background(), cli)
 		os.Exit(0)
 	} else if *version {
 		fmt.Fprintf(os.Stdout, "  Version: %s:\n", versionString)
 		os.Exit(0)
-	} else {
+	} else if *searchTerm == "" {
 		flag.Usage()
+	} else {
+		_, err = getContainersForService(context.Background(), cli, *searchTerm)
+		// containerList, err := searchRunningContainers(context.Background(), cli, *searchTerm)
+		checkError(err)
+
+		// container := getRandomContainer(containerList)
+		// err = cli.ContainerKill(context.Background(), container.ID, "KILL")
+		// checkError(err)
 	}
-
-	containerList, err := searchRunningContainers(context.Background(), cli, *searchTerm)
-	checkError(err)
-
-	container := getRandomContainer(containerList)
-	err = cli.ContainerKill(context.Background(), container.ID, "KILL")
-	checkError(err)
 }

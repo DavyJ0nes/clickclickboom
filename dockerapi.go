@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -19,13 +20,24 @@ func outputRunningContainers(ctx context.Context, cli *client.Client) {
 	if err != nil {
 		panic(err)
 	}
-	tableOutput(containers)
+	tableOutput("containers", containers, nil)
+}
+
+func outputServices(ctx context.Context, cli *client.Client) {
+	ctxd, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	services, err := cli.ServiceList(ctxd, types.ServiceListOptions{})
+	if err != nil {
+		panic(err)
+	}
+	tableOutput("services", nil, services)
 }
 
 // searchRunningContainers returns slice of the current running containers
-func searchRunningContainers(ctx context.Context, cli *client.Client, term string) ([]types.Container, error) {
+func searchRunningContainers(ctx context.Context, cli *client.Client, id string) ([]types.Container, error) {
 	nameFilters := filters.NewArgs()
-	nameFilters.Add("name", term)
+	nameFilters.Add("Id", id)
 	containerListOptions := types.ContainerListOptions{
 		Filters: nameFilters,
 	}
@@ -42,4 +54,26 @@ func searchRunningContainers(ctx context.Context, cli *client.Client, term strin
 	}
 
 	return containers, nil
+}
+
+func getContainersForService(ctx context.Context, cli *client.Client, term string) ([]types.Container, error) {
+	nameFilters := filters.NewArgs()
+	nameFilters.Add("name", term)
+	taskListOptions := types.TaskListOptions{
+		Filters: nameFilters,
+	}
+
+	ctxd, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	tasks, err := cli.TaskList(ctxd, taskListOptions)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, task := range tasks {
+		fmt.Println(task.Status.ContainerStatus.ContainerID)
+	}
+
+	return []types.Container{}, nil
 }
